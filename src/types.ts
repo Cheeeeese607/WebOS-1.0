@@ -33,6 +33,8 @@ export interface Settings {
   twitter_url: string;
   email: string;
   footer_text: string;
+  footer_subtitle: string;
+  footer_copyright: string;
   map_title: string;
   map_subtitle: string;
   map_unit: string;

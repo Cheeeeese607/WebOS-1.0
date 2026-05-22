@@ -97,7 +97,7 @@ export default function ChinaMap({ locations }: Props) {
   return (
     <ReactECharts
       option={options}
-      style={{ height: '100%', width: '100%' }}
+      style={{ minHeight: '400px', height: '100%', width: '100%' }}
       opts={{ renderer: 'canvas' }}
     />
   );

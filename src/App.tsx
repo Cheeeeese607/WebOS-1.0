@@ -21,6 +21,8 @@ function Home() {
     twitter_url: '',
     email: '',
     footer_text: 'CM DESIGN LAB',
+    footer_subtitle: 'Designed with intent. Built for the future.',
+    footer_copyright: '© 2026 .... All rights reserved.',
     map_title: '足迹·FOOTPRINTS',
     map_subtitle: '走遍大江南北',
     map_unit: '点亮城市',
@@ -253,8 +255,8 @@ function Home() {
           {/* Footer Branding */}
           <div className="bg-[#111111] border border-white/[0.05] rounded-[32px] p-8 flex flex-col items-center justify-center text-center transition-all duration-500 hover:bg-white/[0.02]">
              <h3 className="text-sm font-bold tracking-[0.2em] text-white mb-4 uppercase">{settings.footer_text || 'CM DESIGN LAB'}</h3>
-             <p className="text-xs text-neutral-500 font-serif italic max-w-[#200px] mb-8">Designed with intent. Built for the future.</p>
-             <p className="text-[10px] text-neutral-600">© 2026 {settings.name}. All rights reserved.</p>
+             <p className="text-xs text-neutral-500 font-serif italic max-w-[#200px] mb-8">{settings.footer_subtitle || 'Designed with intent. Built for the future.'}</p>
+             <p className="text-[10px] text-neutral-600">{settings.footer_copyright || `© 2026 ${settings.name || '...'}. All rights reserved.`}</p>
              <Link to="/admin" className="text-[10px] text-neutral-700 hover:text-neutral-500 mt-4 underline decoration-white/10 underline-offset-4">Admin Dashboard</Link>
           </div>
         </div>

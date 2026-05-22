@@ -11,7 +11,7 @@ export default function Admin() {
   const [settings, setSettings] = useState<Settings>({
     name: '', title: '', description: '',
     avatar_url: '', github_url: '', twitter_url: '',
-    email: '', footer_text: '',
+    email: '', footer_text: '', footer_subtitle: '', footer_copyright: '',
     map_title: '', map_subtitle: '', map_unit: '',
     stat_1_label: '', stat_1_value: '',
     stat_2_label: '', stat_2_value: '',
@@ -59,6 +59,13 @@ export default function Admin() {
       toast.error(e.response?.data?.error || '修改密码失败');
     }
   };
+
+  useEffect(() => {
+    // Fetch settings for global background even before login
+    axios.get('/api/settings').then(res => {
+      setSettings(prev => ({ ...prev, ...res.data }));
+    }).catch(e => console.error(e));
+  }, []);
 
   useEffect(() => {
     if (token) {
@@ -167,22 +174,39 @@ export default function Admin() {
 
   if (!token) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center font-sans">
+      <div className="min-h-screen flex items-center justify-center font-sans p-6 relative z-0 selection:bg-white/20">
         <Toaster />
-        <form onSubmit={handleLogin} className="bg-[#111] border border-white/[0.05] shadow-2xl p-8 rounded-3xl w-full max-w-sm text-center">
-           <h2 className="text-xl text-white font-medium mb-8">后台管理登录</h2>
-           <input 
-             type="password" 
-             value={password}
-             onChange={e => setPassword(e.target.value)}
-             className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-blue-500/50 focus:bg-black/60 focus:ring-1 focus:ring-blue-500/50 transition-all mb-6 text-center"
-             placeholder="请输入密码"
-           />
-           <button type="submit" className="w-full bg-white text-black font-semibold py-3 rounded-xl hover:bg-neutral-200 transition-colors shadow-lg">
-             登 录
-           </button>
-           <div className="mt-6 text-xs text-neutral-500">初始默认密码: admin123</div>
-        </form>
+        
+        {/* Background Layer */}
+        {settings.bg_image_url ? (
+          <div 
+            className="fixed inset-0 min-h-screen min-w-full z-[-1] bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url(${settings.bg_image_url})` }}
+          >
+            <div className={`absolute inset-0 bg-black/50 ${settings.bg_blur === 'glass' ? 'backdrop-blur-3xl' : ''}`}></div>
+          </div>
+        ) : (
+          <div className="fixed inset-0 min-h-screen min-w-full z-[-1] bg-[#050505]"></div>
+        )}
+
+        <div className="gemini-card isolate group cursor-default w-full max-w-sm">
+          <form onSubmit={handleLogin} className="bg-[#111] group-hover:bg-transparent group-hover:backdrop-blur-[40px] border border-white/[0.05] shadow-2xl p-8 rounded-[32px] w-full text-center transition-all duration-700 h-full relative overflow-hidden">
+             <div className="relative z-10">
+               <h2 className="text-xl text-white font-medium mb-8 tracking-wide">后台管理登录</h2>
+               <input 
+                 type="password" 
+                 value={password}
+                 onChange={e => setPassword(e.target.value)}
+                 className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-blue-500/50 focus:bg-black/60 focus:ring-1 focus:ring-blue-500/50 transition-all mb-6 text-center shadow-inner"
+                 placeholder="请输入密码"
+               />
+               <button type="submit" className="w-full bg-white text-black font-semibold py-3 rounded-xl hover:bg-neutral-200 transition-colors shadow-lg">
+                 登 录
+               </button>
+               <div className="mt-8 text-xs text-neutral-500 font-mono">初始默认密码: admin123</div>
+             </div>
+          </form>
+        </div>
       </div>
     );
   }
@@ -194,9 +218,22 @@ export default function Admin() {
   const listWrapperClass = "flex items-center justify-between p-3.5 bg-black/20 border border-white/[0.05] rounded-xl text-sm hover:bg-black/40 transition-colors";
 
   return (
-    <div className="min-h-screen bg-[#050505] text-neutral-200 font-sans p-6 md:p-10">
+    <div className="min-h-screen text-neutral-200 font-sans p-6 md:p-10 relative z-0 selection:bg-white/20">
       <Toaster />
-      <div className="max-w-6xl mx-auto">
+
+      {/* Background Layer */}
+      {settings.bg_image_url ? (
+        <div 
+          className="fixed inset-0 min-h-screen min-w-full z-[-1] bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${settings.bg_image_url})` }}
+        >
+          <div className={`absolute inset-0 bg-black/50 ${settings.bg_blur === 'glass' ? 'backdrop-blur-3xl' : ''}`}></div>
+        </div>
+      ) : (
+        <div className="fixed inset-0 min-h-screen min-w-full z-[-1] bg-[#050505]"></div>
+      )}
+
+      <div className="max-w-6xl mx-auto relative z-10">
         <div className="flex items-center justify-between mb-10 pb-6 border-b border-white/10">
           <h1 className="text-3xl font-bold text-white tracking-tight">控制台</h1>
           <div className="flex items-center gap-6">
@@ -285,8 +322,18 @@ export default function Admin() {
                    <input placeholder="博客片段 · BLOG" value={settings.blog_title || ''} onChange={e=>setSettings({...settings, blog_title: e.target.value})} className={inputClass} />
                  </div>
                  <div>
-                   <label className={labelClass}>页脚版权</label>
+                   <label className={labelClass}>页脚小标题</label>
                    <input placeholder="CM DESIGN LAB" value={settings.footer_text || ''} onChange={e=>setSettings({...settings, footer_text: e.target.value})} className={inputClass} />
+                 </div>
+               </div>
+               <div className="grid grid-cols-2 gap-4">
+                 <div>
+                   <label className={labelClass}>页脚副文案</label>
+                   <input placeholder="Designed with intent. Built for the future." value={settings.footer_subtitle || ''} onChange={e=>setSettings({...settings, footer_subtitle: e.target.value})} className={inputClass} />
+                 </div>
+                 <div>
+                   <label className={labelClass}>版权声明</label>
+                   <input placeholder="© 2026 {name}. All rights reserved." value={settings.footer_copyright || ''} onChange={e=>setSettings({...settings, footer_copyright: e.target.value})} className={inputClass} />
                  </div>
                </div>
 
