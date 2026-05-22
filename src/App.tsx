@@ -89,7 +89,7 @@ function Home() {
   };
 
   if (loading) {
-    return <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center font-mono">INITIALIZING...</div>;
+    return <div className="min-h-screen bg-[#0a0a0a]"></div>;
   }
 
   return (

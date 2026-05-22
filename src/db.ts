@@ -45,9 +45,21 @@ export async function syncDB() {
         id INT AUTO_INCREMENT PRIMARY KEY,
         username VARCHAR(50) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
+        token VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    try {
+      await connection.query('ALTER TABLE users ADD COLUMN token VARCHAR(255);');
+    } catch (e: any) { if (e.code !== 'ER_DUP_FIELDNAME') console.log(e.message); }
+
+    // Seed default admin user
+    const [userRows] = await connection.query('SELECT COUNT(*) as count FROM users WHERE username = ?', ['admin']);
+    if ((userRows as any)[0].count === 0) {
+      await connection.query('INSERT INTO users (username, password) VALUES (?, ?)', ['admin', 'admin123']);
+      console.log("Default admin created (admin / admin123)");
+    }
 
     // Create settings table
     await connection.query(`

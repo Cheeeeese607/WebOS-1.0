@@ -16,24 +16,51 @@ async function startServer() {
   await syncDB();
 
   // Simple Auth Middleware
-  const requireAuth = (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    const authHeader = req.headers.authorization;
-    if (authHeader === `Bearer ${process.env.ADMIN_PASSWORD}`) {
-      return next();
+  const requireAuth = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      const token = authHeader.split(' ')[1];
+      const [rows] = await getPool().query('SELECT * FROM users WHERE token = ?', [token]);
+      if ((rows as any[]).length > 0) {
+        return next();
+      }
+      res.status(401).json({ error: "Unauthorized" });
+    } catch (e) {
+      res.status(500).json({ error: "Internal Server Error" });
     }
-    res.status(401).json({ error: "Unauthorized" });
   };
 
   // ----- API Routes -----
 
   // Login
-  app.post("/api/login", (req, res) => {
-    const { password } = req.body;
-    // Simple admin auth
-    if (password === process.env.ADMIN_PASSWORD) {
-      return res.json({ token: process.env.ADMIN_PASSWORD, success: true });
+  app.post("/api/login", async (req, res) => {
+    try {
+      const { password } = req.body;
+      const [rows] = await getPool().query('SELECT * FROM users WHERE username = ? AND password = ?', ['admin', password]);
+      if ((rows as any[]).length > 0) {
+        const token = Math.random().toString(36).substring(2) + Date.now().toString(36);
+        await getPool().query('UPDATE users SET token = ? WHERE username = ?', [token, 'admin']);
+        return res.json({ token, success: true });
+      }
+      return res.status(401).json({ success: false, message: "密码错误" });
+    } catch (e: any) {
+      return res.status(500).json({ success: false, message: e.message });
     }
-    return res.status(401).json({ success: false, message: "Invalid password" });
+  });
+
+  // Change Password
+  app.post("/api/change-password", requireAuth, async (req, res) => {
+    try {
+      const { newPassword } = req.body;
+      if (!newPassword) return res.status(400).json({ error: "需要新密码" });
+      await getPool().query('UPDATE users SET password = ? WHERE username = ?', [newPassword, 'admin']);
+      res.json({ success: true });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
   });
 
   // Settings

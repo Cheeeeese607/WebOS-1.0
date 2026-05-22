@@ -29,6 +29,7 @@ export default function Admin() {
   const [newLoc, setNewLoc] = useState({ name: '', longitude: '', latitude: '', description: '', date: '', type: 'travel' });
   const [newPost, setNewPost] = useState({ title: '', content: '', image_url: '' });
   const [newAttr, setNewAttr] = useState({ title: '', description: '', icon: 'Code2' });
+  const [newPassword, setNewPassword] = useState('');
 
   const fetchAdminData = async () => {
     try {
@@ -44,6 +45,18 @@ export default function Admin() {
       setAttributes(attrsRes.data);
     } catch (e) {
       toast.error('数据获取失败');
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPassword) return toast.error('新密码不能为空');
+    try {
+      await axios.post('/api/change-password', { newPassword });
+      toast.success('密码已成功修改。');
+      setNewPassword('');
+    } catch (e: any) {
+      toast.error(e.response?.data?.error || '修改密码失败');
     }
   };
 
@@ -168,7 +181,7 @@ export default function Admin() {
            <button type="submit" className="w-full bg-white text-black font-semibold py-3 rounded-xl hover:bg-neutral-200 transition-colors shadow-lg">
              登 录
            </button>
-           <div className="mt-6 text-xs text-neutral-500">默认密码位于 .env.example (admin)</div>
+           <div className="mt-6 text-xs text-neutral-500">初始默认密码: admin123</div>
         </form>
       </div>
     );
@@ -420,6 +433,19 @@ export default function Admin() {
                  ))}
                  {posts.length === 0 && <div className="text-sm text-neutral-500 text-center py-4">暂无博客日志</div>}
                </div>
+            </div>
+            <div className="bg-[#111] border border-white/[0.05] shadow-2xl rounded-3xl p-8 relative overflow-hidden">
+              <h2 className="text-xl font-semibold text-white mb-8 flex items-center gap-3">
+                 <div className="w-2 h-2 rounded-full bg-rose-500"></div>
+                 账号安全
+              </h2>
+              <form onSubmit={handleChangePassword} className="space-y-4">
+                 <div>
+                   <label className={labelClass}>新密码</label>
+                   <input type="password" value={newPassword} onChange={e=>setNewPassword(e.target.value)} className={inputClass} placeholder="输入新密码..." required />
+                 </div>
+                 <button type="submit" className="w-full bg-rose-500/10 border border-rose-500/20 text-rose-400 font-medium py-2.5 rounded-xl hover:bg-rose-500/20 transition-all text-sm mt-4">修改密码</button>
+              </form>
             </div>
             
           </div>
